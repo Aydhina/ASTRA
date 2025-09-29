@@ -61,53 +61,51 @@
 </head>
 
 <body>
-
-<div class="container mt-4">
-    <div class="detail-box">
-        <div class="detail-title">
-            <a href="<?= base_url('index.php/pelanggaran') ?>">
-                <i class="bi bi-caret-left-fill"></i>
-            </a>
-            Detail Pelanggaran Siswa
-        </div>
-        <hr class="custom-line">
-
-        <div class="row row-detail">
-            <div class="col-md-4 text-center">
-                <?php if (!empty($data->foto)): ?>
-                    <img src="<?= base_url('uploads/foto_siswa/' . $data->foto) ?>" 
-                         alt="Foto Siswa" 
-                         class="img-fluid rounded mb-3" 
-                         style="max-height: 220px; object-fit: cover; border: 3px solid #AEE3E0;">
-                <?php else: ?>
-                    <img src="<?= base_url('uploads/foto_siswa/default.png') ?>" 
-                         alt="Foto Siswa" 
-                         class="img-fluid rounded mb-3" 
-                         style="max-height: 220px; object-fit: cover; border: 3px solid #AEE3E0;">
-                    <p class="text-light">Foto belum tersedia</p>
-                <?php endif; ?>
+    <div class="container mt-4">
+        <div class="detail-box">
+            <div class="detail-title">
+                <a href="<?= base_url('index.php/pelanggaran') ?>">
+                    <i class="bi bi-caret-left-fill"></i>
+                </a>
+                Detail Pelanggaran Siswa
             </div>
+            <hr class="custom-line">
 
-            <div class="col-md-8">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>NISN:</strong> <?= $data->nisn ?></p>
-                        <p><strong>Tanggal:</strong> <?= date('d-m-Y', strtotime($data->tanggal)) ?></p>
-                        <p><strong>Nama:</strong> <?= $data->nama_siswa ?></p>
-                        <p><strong>Jenis Kelamin:</strong> <?= $data->jenis_kelamin ?></p>
-                        <p><strong>Kelas:</strong> <?= $data->kelas ?></p>
-                        <p><strong>Wali Kelas:</strong> <?= $data->wali_kelas ?></p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Kode:</strong> <?= $data->kode ?></p>
-                        <p><strong>Jenis Pelanggaran:</strong> <?= $data->keterangan ?></p>
-                        <p><strong>Poin:</strong> <?= $data->poin ?></p>
+            <div class="row row-detail">
+                <div class="col-md-4 text-center">
+                    <?php if (!empty($data->foto)): ?>
+                        <img src="<?= base_url('uploads/foto_siswa/' . $data->foto) ?>" 
+                            alt="Foto Siswa" 
+                            class="img-fluid rounded mb-3" 
+                            style="max-height: 220px; object-fit: cover; border: 3px solid #AEE3E0;">
+                    <?php else: ?>
+                        <img src="<?= base_url('uploads/foto_siswa/default.png') ?>" 
+                            alt="Foto Siswa" 
+                            class="img-fluid rounded mb-3" 
+                            style="max-height: 220px; object-fit: cover; border: 3px solid #AEE3E0;">
+                        <p class="text-light">Foto belum tersedia</p>
+                    <?php endif; ?>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>NISN:</strong> <?= $data->nisn ?></p>
+                            <p><strong>Tanggal:</strong> <?= date('d-m-Y', strtotime($data->tanggal)) ?></p>
+                            <p><strong>Nama:</strong> <?= $data->nama_siswa ?></p>
+                            <p><strong>Jenis Kelamin:</strong> <?= $data->jenis_kelamin ?></p>
+                            <p><strong>Kelas:</strong> <?= $data->kelas ?></p>
+                            <p><strong>Wali Kelas:</strong> <?= $data->wali_kelas ?></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Kode:</strong> <?= $data->kode ?></p>
+                            <p><strong>Jenis Pelanggaran:</strong> <?= $data->keterangan ?></p>
+                            <p><strong>Poin:</strong> <?= $data->poin ?></p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
 </body>
 </html>

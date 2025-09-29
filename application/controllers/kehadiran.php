@@ -2,7 +2,6 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
- * Model
  * @property m_kehadiran $m
  * @property m_siswa $m_siswa
  * @property CI_Input $input
@@ -19,12 +18,25 @@ use Dompdf\Options;
 
 class Kehadiran extends CI_Controller
 {
-    function __construct()
-    {
-        parent::__construct();
-        $this->load->model('m_kehadiran', 'm');
-        $this->load->helper(['form', 'url']);
+
+    public function __construct()
+{
+    parent::__construct();
+
+    // Cek apakah user sudah login
+    if (!$this->session->userdata('logged_in')) {
+        redirect('landingpage');
     }
+
+    // Load semua model yang dipakai
+    $this->load->model('M_kehadiran');
+    $this->load->model('M_revisi');
+    $this->load->model('M_pelanggaran');
+    $this->load->model('m_kehadiran', 'm');
+
+    // Load helper
+    $this->load->helper(['form', 'url']);
+}
 
     public function index()
     {
@@ -40,7 +52,6 @@ class Kehadiran extends CI_Controller
         $this->load->view('templates/footer');
     }
 
-    //	Digunakan di AJAX untuk menampilkan tabel data kehadiran.
     public function ambildata()
     {
         $data = $this->m->ambildata()->result();
@@ -60,8 +71,6 @@ class Kehadiran extends CI_Controller
         echo json_encode(['pesan' => '']);
     }
 
-
-    //dipakai untuk fungsi edit data (terhubung ke form), meskipun tidak lengkap di HTML.
     public function ambilId()
     {
         $id = $this->input->post('id');
@@ -108,32 +117,25 @@ class Kehadiran extends CI_Controller
 
     public function export_pdf()
     {
-        // Ambil data dari database
         $this->db->select('k.*, s.nama_siswa, s.kelas, s.jenis_kelamin, s.wali_kelas');
         $this->db->from('kehadiran k');
         $this->db->join('data_siswa s', 'k.nisn = s.nisn', 'left');
         $this->db->order_by('k.tanggal', 'ASC');
         $data['kehadiran'] = $this->db->get()->result();
 
-        // Convert view menjadi HTML
         $html = $this->load->view('laporan_kehadiran/laporan_pdf', $data, true);
 
-        // Konfigurasi Dompdf
         require_once FCPATH . 'vendor/autoload.php';
         $options = new Options();
-        $options->set('isRemoteEnabled', true); // jika load gambar/css eksternal
+        $options->set('isRemoteEnabled', true); 
         $dompdf = new Dompdf($options);
 
-        // Load HTML
         $dompdf->loadHtml($html);
 
-        // Set ukuran kertas & orientasi
         $dompdf->setPaper('A4', 'landscape');
 
-        // Render PDF
         $dompdf->render();
 
-        // Output ke browser (Attachment=0 berarti langsung buka di browser)
         $dompdf->stream("laporan_kehadiran.pdf", ["Attachment" => 0]);
     }
 
@@ -183,70 +185,55 @@ class Kehadiran extends CI_Controller
 
     public function laporan_persiswa($nisn)
     {
-        // Ambil data siswa
         $siswa = $this->db->get_where('data_siswa', ['nisn' => $nisn])->row();
         if (!$siswa) {
             show_error("Siswa tidak ditemukan.");
         }
 
-        // Ambil data kehadiran siswa
         $kehadiran = $this->db->get_where('kehadiran', ['nisn' => $nisn])->result();
 
-        // Siapkan data untuk view
         $data = [
             'siswa' => $siswa,
             'kehadiran' => $kehadiran
         ];
 
-        // Load view jadi HTML string
         $html = $this->load->view('laporan_kehadiran/laporan_persiswa', $data, true);
 
-        // Load Dompdf terbaru
         require_once FCPATH . 'vendor/autoload.php';
         $dompdf = new Dompdf();
 
-        // Load HTML ke Dompdf
         $dompdf->loadHtml($html);
 
-        // Atur ukuran & orientasi kertas
         $dompdf->setPaper('A4', 'portrait');
 
-        // Render PDF
         $dompdf->render();
 
-        // Outputkan PDF ke browser
         $dompdf->stream('Laporan_Kehadiran_' . $siswa->nama_siswa . '.pdf', [
-            "Attachment" => false // false = tampil di browser, true = download otomatis
+            "Attachment" => false 
         ]);
     }
 
     public function export_laporan_persiswa_pdf()
     {
-        // Ambil data laporan (pastikan model & method benar)
         $this->load->model('m_kehadiran');
         $data['laporan'] = $this->m->get_laporan_persiswa();
 
-        // Load view jadi HTML string
         $html = $this->load->view('laporan_persiswa_pdf', $data, true);
 
-        // Load Dompdf terbaru
         require_once APPPATH . 'third_party/dompdf/autoload.inc.php';
         $dompdf = new Dompdf();
 
-        // Load HTML ke Dompdf
         $dompdf->loadHtml($html);
 
-        // Atur ukuran & orientasi kertas
         $dompdf->setPaper('A4', 'portrait');
 
-        // Render PDF
         $dompdf->render();
 
-        // Outputkan PDF ke browser
         $dompdf->stream("Laporan_Kehadiran_Per_Siswa.pdf", [
             "Attachment" => false
         ]);
     }
+    
     public function get_autocomplete_siswa()
     {
         $term = $this->input->get('term');

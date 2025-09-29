@@ -6,7 +6,6 @@
   <title>Manajemen Data Siswa</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Bootstrap & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
@@ -72,16 +71,37 @@
       color: #999;
       font-style: italic;
     }
+
+    .badge-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.75rem; /* samakan dengan .btn-sm */
+  font-size: 0.850rem;       /* sama dengan btn-sm */
+  font-weight: 600;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  min-height: 31px;          /* samakan tinggi minimal btn-sm */
+  text-transform: uppercase;
+}
+
+.badge-status.aktif {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.badge-status.nonaktif {
+  background-color: #dc3545;
+  color: #fff;
+}
   </style>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
-
   <div class="container py-5">
     <h3 class="text-center mb-4 font-weight-bold text-dark">Manajemen Data Siswa</h3>
-
     <div class="accordion mb-4" id="inputAccordion">
       <div class="card shadow-sm">
         <div class="card-header" id="headingManual">
@@ -133,7 +153,6 @@
         </div>
       </div>
 
-      <!-- Import Excel -->
       <div class="card shadow-sm mt-3">
         <div class="card-header" id="headingExcel">
           <h5 class="mb-0">
@@ -163,7 +182,6 @@
       </div>
     </div>
 
-    <!-- Toast Success -->
     <div aria-live="polite" aria-atomic="true" style="position: fixed; top: 20px; right: 20px; z-index: 1080;">
       <div id="toastSukses" class="toast toast-success fade" role="alert" aria-live="assertive" aria-atomic="true" data-delay="1500">
         <div class="toast-header bg-success text-white">
@@ -181,7 +199,6 @@
         <div class="toast-body" id="toastErrorBody">Terjadi kesalahan saat menyimpan data.</div>
       </div>
 
-      <!-- Toast Flashdata (Import Excel) -->
       <?php if ($this->session->flashdata('sukses')): ?>
         <div class="toast toast-success" role="alert" aria-live="assertive" aria-atomic="true" data-delay="1500" id="toastFlashSukses">
           <div class="toast-header bg-success text-white">
@@ -205,7 +222,6 @@
       <?php endif; ?>
     </div>
 
-    <!-- Table -->
     <div class="d-flex justify-content-end mb-2">
       <input type="text" id="searchInput" class="form-control w-25" placeholder="Search..." oninput="this.value = this.value.toUpperCase()">
       <button class="btn btn-danger" onclick="hapusSemuaSiswa()">
@@ -214,7 +230,6 @@
     </div>
 
     <h5 class="font-weight-bold mb-3 mt-2">Daftar Siswa Terdata</h5>
-
     <div class="table-responsive">
       <table class="table table-bordered table-striped">
         <thead class="thead-custom">
@@ -226,6 +241,7 @@
             <th>Kelas</th>
             <th>JK</th>
             <th>Wali Kelas</th>
+            <th>Status</th>
             <th>Aksi</th>
           </tr>
         </thead>
@@ -235,7 +251,6 @@
     </div>
   </div>
 
-  <!-- Modal Upload Foto -->
   <div class="modal fade" id="modalFoto" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <form id="formUploadFoto" enctype="multipart/form-data">
@@ -263,8 +278,6 @@
     </div>
   </div>
 
-
-  <!-- AJAX -->
   <script>
     $(document).ready(function() {
       ambilData();
@@ -334,7 +347,7 @@
           type: "POST",
           url: "<?= base_url('index.php/data_siswa/hapus_semua') ?>",
           success: function(res) {
-            ambilData(); // refresh tabel
+            ambilData(); 
             alert("Semua data siswa berhasil dihapus.");
           },
           error: function() {
@@ -352,32 +365,37 @@
         let btnFoto = "";
         if (item.foto && item.foto !== "") {
           btnFoto = `
-    <a href="<?= base_url('uploads/foto_siswa/') ?>${item.foto}" 
-       target="_blank" class="btn btn-sm btn-success">
-      <i class="fas fa-image"></i> Lihat Foto
-    </a>
-    <button class="btn btn-sm btn-danger ml-1" 
-            onclick="hapusFoto('${item.id}')">
-      <i class="fas fa-trash"></i> Hapus Foto
-    </button>`;
-        } else {
+            <a href="<?= base_url('uploads/foto_siswa/') ?>${item.foto}" 
+              target="_blank" class="btn btn-sm btn-success">
+              <i class="fas fa-image"></i> Lihat Foto
+            </a>
+            <button class="btn btn-sm btn-danger ml-1" 
+                    onclick="hapusFoto('${item.id}')">
+              <i class="fas fa-trash"></i> Hapus Foto
+            </button>`;
+          } else {
           btnFoto = `
-    <button class="btn btn-sm btn-info" 
-            onclick="bukaModalFoto('${item.id}', '${item.nama_siswa}')">
-      <i class="fas fa-camera"></i> Tambah Foto
-    </button>`;
-        }
-        html += `
-    <tr>
-      <td>${no++}</td>
-      <td>${item.nisn}</td>
-      <td>${item.nipd}</td>
-      <td>${item.nama_siswa}</td>
-      <td>${item.kelas}</td>
-      <td>${item.jenis_kelamin}</td>
-      <td>${item.wali_kelas}</td>
-      <td>${btnFoto}</td>
-    </tr>`;
+            <button class="btn btn-sm btn-info" 
+                    onclick="bukaModalFoto('${item.id}', '${item.nama_siswa}')">
+              <i class="fas fa-camera"></i> Tambah Foto
+            </button>`;
+          }
+          html += `
+            <tr>
+              <td>${no++}</td>
+              <td>${item.nisn}</td>
+              <td>${item.nipd}</td>
+              <td>${item.nama_siswa}</td>
+              <td>${item.kelas}</td>
+              <td>${item.jenis_kelamin}</td>
+              <td>${item.wali_kelas}</td>
+              <td>
+                <span class="badge-status ${item.status === 'aktif' ? 'aktif' : 'nonaktif'}">
+                  ${item.status}
+                </span>
+              </td>
+              <td>${btnFoto}</td>
+            </tr>`;
       });
 
       $("#tabelSiswa").html(html);
@@ -423,7 +441,7 @@
       if (searchKeyword.trim() !== "") {
         cariData(1);
       } else {
-        ambilData(1); // kalau kosong, tampilkan semua
+        ambilData(1); 
       }
     });
 
@@ -469,13 +487,13 @@
 
       $.ajax({
         type: "POST",
-        url: "<?= base_url('index.php/data_siswa/upload_foto') ?>", // buat endpoint di controller
+        url: "<?= base_url('index.php/data_siswa/upload_foto') ?>", 
         data: formData,
         contentType: false,
         processData: false,
         success: function(res) {
           $("#modalFoto").modal("hide");
-          ambilData(); // refresh tabel agar tombol berubah
+          ambilData(); 
           $('#toastSukses .toast-body').text("Foto berhasil diupload!");
           $('#toastSukses').toast('show');
         },
@@ -486,36 +504,34 @@
       });
     });
 
-          function hapusFoto(id) {
-        if (confirm("Yakin ingin menghapus foto siswa ini?")) {
-          $.ajax({
-            type: "POST",
-            url: "<?= base_url('index.php/data_siswa/hapus_foto') ?>",
-            data: {
-              id: id
-            },
-            dataType: "json",
-            success: function(res) {
-              if (res.status === "sukses") {
-                ambilData(); // refresh tabel
-                $('#toastSukses .toast-body').text("Foto berhasil dihapus!");
-                $('#toastSukses').toast('show');
-              } else {
-                $('#toastErrorBody').text(res.error || "Gagal hapus foto.");
-                $('#toastError').toast('show');
-              }
-            },
-            error: function() {
-              $('#toastErrorBody').text("Terjadi kesalahan saat menghapus foto.");
+    function hapusFoto(id) {
+      if (confirm("Yakin ingin menghapus foto siswa ini?")) {
+        $.ajax({
+          type: "POST",
+          url: "<?= base_url('index.php/data_siswa/hapus_foto') ?>",
+          data: {
+            id: id
+          },
+          dataType: "json",
+          success: function(res) {
+            if (res.status === "sukses") {
+              ambilData(); 
+              $('#toastSukses .toast-body').text("Foto berhasil dihapus!");
+              $('#toastSukses').toast('show');
+            } else {
+              $('#toastErrorBody').text(res.error || "Gagal hapus foto.");
               $('#toastError').toast('show');
             }
-          });
-        }
+          },
+          error: function() {
+            $('#toastErrorBody').text("Terjadi kesalahan saat menghapus foto.");
+            $('#toastError').toast('show');
+          }
+        });
       }
-
+    }
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

@@ -11,16 +11,27 @@ use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
  * @property CI_DB_query_builder $db 
  * @property CI_Input $input
  * @property CI_Session $session
+ * @property CI_Upload $upload
  */
 
 class Data_siswa extends CI_Controller
 {
-    function __construct()
-    {
-        parent::__construct();
-        $this->load->model('m_siswa', 'm');
-        $this->load->helper(['form', 'url']);
+    public function __construct()
+{
+    parent::__construct();
+
+    // Cek apakah user sudah login
+    if (!$this->session->userdata('logged_in')) {
+        redirect('landingpage'); // redirect ke halaman login/landing jika belum login
     }
+
+    // Load semua model & helper yang dibutuhkan
+    $this->load->model('M_kehadiran');
+    $this->load->model('M_revisi');
+    $this->load->model('M_pelanggaran');
+    $this->load->model('m_siswa', 'm');
+    $this->load->helper(['form', 'url']);
+}
 
     public function index()
     {
@@ -35,12 +46,12 @@ class Data_siswa extends CI_Controller
 
     public function ambildata()
     {
-        $page = $this->input->get('page') ?? 1; // Ambil page dari query string, default 1
+        $page = $this->input->get('page') ?? 1;
         $limit = 35;
         $offset = ($page - 1) * $limit;
 
         $this->load->model('M_siswa');
-        $total = $this->db->count_all('data_siswa'); // total semua data
+        $total = $this->db->count_all('data_siswa'); 
         $data = $this->m->get_siswa_paginated($limit, $offset);
 
         echo json_encode([
@@ -233,7 +244,6 @@ class Data_siswa extends CI_Controller
 
         $data = $this->m->search_siswa($keyword, $limit, $offset);
 
-        // Hitung total hasil
         $this->db->from('data_siswa');
         $this->db->group_start();
         $this->db->like('nisn', $keyword);
@@ -284,12 +294,10 @@ class Data_siswa extends CI_Controller
         if ($siswa && !empty($siswa->foto)) {
             $filePath = FCPATH . 'uploads/foto_siswa/' . $siswa->foto;
 
-            // Hapus file di folder
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
 
-            // Hapus nama file di database
             $this->db->where('id', $id)->update('data_siswa', ['foto' => NULL]);
 
             echo json_encode(['status' => 'sukses']);

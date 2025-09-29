@@ -67,30 +67,47 @@ class Pelanggaran extends CI_Controller
     }
 
     public function tambahdata()
-    {
-        $nisn = $this->input->post('nisn');
+{
+    $nisn = $this->input->post('nisn');
 
-        $siswa = $this->db->get_where('data_siswa', ['nisn' => $nisn])->row_array();
+    $siswa = $this->db->get_where('data_siswa', ['nisn' => $nisn])->row_array();
 
-        if (!$siswa) {
-            echo json_encode(['pesan' => 'Data siswa tidak ditemukan']);
-            return;
-        }
-
-        $data = [
-            'nisn' => $this->input->post('nisn'),
-            'tanggal' => $this->input->post('tanggal'),
-            'kode' => $this->input->post('kode'),
-            'keterangan' => $this->input->post('keterangan'),
-            'poin' => $this->input->post('poin'),
-        ];
-
-        $sukses = $this->m->tambahdata($data, 'pelanggaran');
-
-        echo json_encode([
-            'pesan' => $sukses ? '' : 'Gagal menyimpan data'
-        ]);
+    if (!$siswa) {
+        echo json_encode(['pesan' => 'Data siswa tidak ditemukan']);
+        return;
     }
+
+    $data = [
+        'nisn'       => $this->input->post('nisn'),
+        'tanggal'    => $this->input->post('tanggal'),
+        'kode'       => $this->input->post('kode'),
+        'keterangan' => $this->input->post('keterangan'),
+        'poin'       => $this->input->post('poin'),
+    ];
+
+    // simpan ke tabel pelanggaran
+    $sukses = $this->m->tambahdata($data, 'pelanggaran');
+
+    if ($sukses) {
+        // load model revisi (karena belum di-load di __construct)
+        $this->load->model('m_revisi');
+
+        // hitung total poin terbaru siswa
+        $total_poin = $this->m_revisi->get_total_poin($data['nisn']);
+
+        // simpan/update ke tabel revisi
+        $revisi_data = [
+            'nisn'    => $data['nisn'],
+            'poin'    => $total_poin,
+            'tanggal' => $data['tanggal']
+        ];
+        $this->m_revisi->simpan_revisi($revisi_data);
+
+        echo json_encode(['pesan' => '']); // sukses
+    } else {
+        echo json_encode(['pesan' => 'Gagal menyimpan data']);
+    }
+}
 
     public function ambilId()
     {
@@ -138,15 +155,8 @@ class Pelanggaran extends CI_Controller
         $this->load->view('templates/footer');
     }
 
-
-    // public function print(){
-    //     $data['kehadiran'] = $this->m_kehadiran->tampil_data("kehadiran")->result();
-    //     $this->load->view('print_kehadiran', $data);
-    // }
-
     public function export_pdf()
     {
-        // Ambil data dari database
         $this->db->select('k.*, s.nama_siswa, s.kelas, s.jenis_kelamin, s.wali_kelas');
         $this->db->from('pelanggaran k');
         $this->db->join('data_siswa s', 'k.nisn = s.nisn', 'left');
@@ -154,26 +164,20 @@ class Pelanggaran extends CI_Controller
         $this->db->order_by('s.kelas', 'ASC');
         $data['pelanggaran'] = $this->db->get()->result();
 
-        // Load view jadi HTML string
         $html = $this->load->view('laporan_pelanggaran/laporan_pdf', $data, true);
 
-        // Load Dompdf dari Composer
         require_once FCPATH . 'vendor/autoload.php';
 
         $options = new Options();
-        $options->set('isRemoteEnabled', true); // aktifkan jika ada gambar eksternal
+        $options->set('isRemoteEnabled', true);
         $dompdf = new Dompdf($options);
 
-        // Load HTML ke Dompdf
         $dompdf->loadHtml($html);
 
-        // Set ukuran kertas & orientasi
         $dompdf->setPaper('A4', 'landscape');
 
-        // Render PDF
         $dompdf->render();
 
-        // Tampilkan di browser
         $dompdf->stream("laporan_pelanggaran.pdf", ["Attachment" => 0]);
     }
 
