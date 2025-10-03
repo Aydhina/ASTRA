@@ -10,6 +10,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * @property CI_Output $output
  * @property Dompdf_gen $dompdf_gen
  * @property CI_DB_query_builder $db
+ * @property CI_Session $session
  */
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -19,10 +20,22 @@ use Dompdf\Options;
 
 class Pelanggaran extends CI_Controller
 {
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
+
+        // Cek session login
+        if (!$this->session->userdata('logged_in')) {
+            redirect('landingpage');
+        }
+
+        // Load model
         $this->load->model('m_pelanggaran', 'm');
+        $this->load->model('M_kehadiran');
+        $this->load->model('M_revisi');
+        $this->load->model('M_pelanggaran');
+
+        // Load helper
         $this->load->helper(['form', 'url']);
     }
 
@@ -67,47 +80,30 @@ class Pelanggaran extends CI_Controller
     }
 
     public function tambahdata()
-{
-    $nisn = $this->input->post('nisn');
+    {
+        $nisn = $this->input->post('nisn');
 
-    $siswa = $this->db->get_where('data_siswa', ['nisn' => $nisn])->row_array();
+        $siswa = $this->db->get_where('data_siswa', ['nisn' => $nisn])->row_array();
 
-    if (!$siswa) {
-        echo json_encode(['pesan' => 'Data siswa tidak ditemukan']);
-        return;
-    }
+        if (!$siswa) {
+            echo json_encode(['pesan' => 'Data siswa tidak ditemukan']);
+            return;
+        }
 
-    $data = [
-        'nisn'       => $this->input->post('nisn'),
-        'tanggal'    => $this->input->post('tanggal'),
-        'kode'       => $this->input->post('kode'),
-        'keterangan' => $this->input->post('keterangan'),
-        'poin'       => $this->input->post('poin'),
-    ];
-
-    // simpan ke tabel pelanggaran
-    $sukses = $this->m->tambahdata($data, 'pelanggaran');
-
-    if ($sukses) {
-        // load model revisi (karena belum di-load di __construct)
-        $this->load->model('m_revisi');
-
-        // hitung total poin terbaru siswa
-        $total_poin = $this->m_revisi->get_total_poin($data['nisn']);
-
-        // simpan/update ke tabel revisi
-        $revisi_data = [
-            'nisn'    => $data['nisn'],
-            'poin'    => $total_poin,
-            'tanggal' => $data['tanggal']
+        $data = [
+            'nisn' => $this->input->post('nisn'),
+            'tanggal' => $this->input->post('tanggal'),
+            'kode' => $this->input->post('kode'),
+            'keterangan' => $this->input->post('keterangan'),
+            'poin' => $this->input->post('poin'),
         ];
-        $this->m_revisi->simpan_revisi($revisi_data);
 
-        echo json_encode(['pesan' => '']); // sukses
-    } else {
-        echo json_encode(['pesan' => 'Gagal menyimpan data']);
+        $sukses = $this->m->tambahdata($data, 'pelanggaran');
+
+        echo json_encode([
+            'pesan' => $sukses ? '' : 'Gagal menyimpan data'
+        ]);
     }
-}
 
     public function ambilId()
     {

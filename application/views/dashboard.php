@@ -283,9 +283,7 @@
       });
     });
   }
-</script>
 
-<script>
   // Klik tombol upload → buka file manager
   $(document).on('click', '.uploadBtn', function () {
     var nisn = $(this).data('nisn');
